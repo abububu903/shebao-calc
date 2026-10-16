@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>社保实缴前后测算表</title>
+<style>
+:root{--seed-fg:#101317;--seed-muted:#6b7280;--seed-primary:#0b62d6;--border-standard:#c9c9c9;--border-subtle:#e6e8ec;--card-bg:#ffffff;--inset-bg:#f4f6f8;--fill-1:#f7f8fa;--fill-2:#eef0f3;--fill-3:#e4e7eb;--font-sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;--font-code:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--viz-series-1:#0b62d6;--viz-series-2:#c2410c}.viz-legend{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--seed-muted)}.viz-legend-swatch{width:10px;height:10px;border-radius:3px;display:inline-block}.text-small{font-size:12px}.table-responsive{width:100%;overflow-x:auto}
+html{color-scheme:light}body{margin:0;background:#f6f8fb}#shebao-calc{padding:0 0 48px}
+</style>
+</head>
+<body>
+
+<div id="shebao-calc">
+  <style>
+    #shebao-calc {
+      --tile-1: color-mix(in srgb, var(--seed-primary) 74%, #d7e6ff);
+      --tile-2: color-mix(in srgb, var(--seed-primary) 90%, #17245f);
+      --tile-ink: #ffffff;
+      --tile-soft: color-mix(in srgb, #ffffff 76%, var(--seed-primary));
+      --tile-line: color-mix(in srgb, var(--seed-primary) 16%, var(--border-subtle));
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--seed-fg);
+      display: flex;
+      flex-direction: column;
+    }
+    #shebao-calc *,
+    #shebao-calc *::before,
+    #shebao-calc *::after {
+      box-sizing: border-box;
+    }
+    #shebao-calc .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      margin: 0;
+      padding: 12px 0 13px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    #shebao-calc .bar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 0 16px;
+      width: 100%;
+    }
+    #shebao-calc .wrap {
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 14px 16px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #shebao-calc .hero {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+    #shebao-calc .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    #shebao-calc .brand-mark {
+      width: 24px;
+      height: 24px;
+      flex: none;
+      border-radius: 8px;
+      background: linear-gradient(150deg, var(--tile-1), var(--tile-2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #shebao-calc .brand-mark svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--tile-ink);
+    }
+    #shebao-calc .brand-title {
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      line-height: 1.25;
+    }
+    #shebao-calc .bar-note {
+      font-size: 12px;
+      color: var(--seed-muted);
+      text-align: right;
+      margin-left: auto;
+    }
+    #shebao-calc .foot {
+      font-size: 12px;
+      color: var(--seed-muted);
+      text-align: center;
+      line-height: 1.6;
+      padding: 2px 0 6px;
+    }
+    #shebao-calc .module {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 2px 12px color-mix(in srgb, var(--seed-fg) 6%, transparent);
+    }
+    #shebao-calc .module-title {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    #shebao-calc .module-title .sub {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--seed-muted);
+    }
+    #shebao-calc .tip {
+      font-size: 12px;
+      color: var(--seed-muted);
+      line-height: 1.7;
+      background: var(--card-bg);
+      border: 1px solid var(--tile-line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin: 0;
+    }
+    #shebao-calc .tip-label {
+      color: var(--seed-primary);
+      font-weight: 500;
+    }
+    #shebao-calc .viz-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+    }
+    #shebao-calc .viz-field + .viz-field {
+      margin-top: 0;
+    }
+    #shebao-calc #sc-fields > .viz-controls {
+      margin-top: 12px;
+    }
+    #shebao-calc label {
+      display: block;
+      font-size: 12px;
+      color: var(--seed-muted);
+      margin-bottom: 4px;
+    }
+    #shebao-calc input {
+      width: 100%;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--seed-fg);
+      background: var(--inset-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 7px 10px;
+      min-height: 34px;
+      box-sizing: border-box;
+    }
+    #shebao-calc .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+    #shebao-calc .check input {
+      width: auto;
+      min-height: 0;
+    }
+    #shebao-calc .tabs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    #shebao-calc .tab {
+      font-family: inherit;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-height: 74px;
+      padding: 12px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: linear-gradient(150deg, var(--tile-1), var(--tile-2));
+      color: var(--tile-ink);
+      opacity: 0.68;
+    }
+    #shebao-calc .tab-name {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    #shebao-calc .tab-meta {
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--tile-soft);
+    }
+    #shebao-calc .tab[aria-selected="true"] {
+      opacity: 1;
+      box-shadow: 0 6px 16px color-mix(in srgb, var(--seed-primary) 30%, transparent);
+    }
+    #shebao-calc .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #shebao-calc .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+    #shebao-calc .grid-2 > * {
+      min-width: 0;
+    }
+    #shebao-calc .stat {
+      border-radius: 12px;
+      padding: 14px;
+      background: linear-gradient(150deg, var(--tile-1), var(--tile-2));
+      color: var(--tile-ink);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+    #shebao-calc .stat .text-small {
+      color: var(--tile-soft);
+    }
+    #shebao-calc .stat-value {
+      font-size: 26px;
+      font-weight: 600;
+      line-height: 1.3;
+      font-variant-numeric: tabular-nums;
+    }
+    #shebao-calc .stat .note {
+      color: var(--tile-soft);
+    }
+    #shebao-calc .panel {
+      background: var(--inset-bg);
+      border-radius: 12px;
+      padding: 4px 12px 6px;
+      overflow-x: auto;
+    }
+    #shebao-calc table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    #shebao-calc th,
+    #shebao-calc td {
+      text-align: right;
+      padding: 8px 4px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    #shebao-calc th:first-child,
+    #shebao-calc td:first-child {
+      text-align: left;
+      color: var(--seed-muted);
+      font-weight: 400;
+    }
+    #shebao-calc thead th {
+      font-size: 12px;
+      color: var(--seed-muted);
+      font-weight: 500;
+    }
+    #shebao-calc tbody tr:last-child td {
+      border-bottom: none;
+    }
+    #shebao-calc .formula {
+      font-family: var(--font-code);
+      font-size: 12px;
+      background: var(--inset-bg);
+      border-radius: 12px;
+      padding: 10px 12px;
+      line-height: 1.7;
+      overflow-wrap: anywhere;
+      margin-top: 12px;
+    }
+    #shebao-calc svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    #shebao-calc .legend-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      margin-top: 6px;
+    }
+    #shebao-calc .note {
+      font-size: 12px;
+      color: var(--seed-muted);
+      line-height: 1.6;
+    }
+    #shebao-calc .alert {
+      font-size: 12px;
+      color: var(--seed-primary);
+      background: var(--card-bg);
+      border: 1px solid var(--tile-line);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+    #shebao-calc .hidden {
+      display: none;
+    }
+  </style>
+
+  <div class="topbar">
+    <div class="bar-inner">
+      <div class="hero">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 16 16"><path d="M9.2 1 3.4 9h3.3l-.9 6 5.8-8H8.3z"/></svg>
+          </span>
+          <span class="brand-title">社保实缴前后测算表</span>
+        </div>
+      </div>
+      <span class="bar-note">默认26年深圳基数，基数上下限按当地当年为准，可自行修改</span>
+    </div>
+  </div>
+
+  <div class="wrap">
+  <p class="tip">
+    <span class="tip-label">数据怎么查：</span>「实际工资」请查个税 APP 的收入，「现单位/个人缴费额」请微信搜索「我的社保卡-个人服务查询-社保缴费信息查询」，工具不记录任何数据，放心使用
+  </p>
+
+  <div class="tabs" role="tablist" aria-label="险种">
+    <button type="button" class="tab" role="tab" id="tab-pension" aria-controls="sc-single" aria-selected="true">
+      <span class="tab-name">养老</span>
+      <span class="tab-meta" id="meta-pension">—</span>
+    </button>
+    <button type="button" class="tab" role="tab" id="tab-medical" aria-controls="sc-single" aria-selected="false">
+      <span class="tab-name">医疗</span>
+      <span class="tab-meta" id="meta-medical">—</span>
+    </button>
+    <button type="button" class="tab" role="tab" id="tab-unemployment" aria-controls="sc-single" aria-selected="false">
+      <span class="tab-name">失业</span>
+      <span class="tab-meta" id="meta-unemployment">—</span>
+    </button>
+    <button type="button" class="tab" role="tab" id="tab-total" aria-controls="sc-total" aria-selected="false">
+      <span class="tab-name">综合</span>
+      <span class="tab-meta">养老 + 医疗 + 失业 一起算</span>
+    </button>
+  </div>
+
+  <div class="module">
+    <div class="module-title"><span>参数录入</span><span class="sub">改任意一项，结果即时重算</span></div>
+    <div class="viz-field">
+      <label for="sc-wage">实际工资（元/月）</label>
+      <input id="sc-wage" type="number" step="100" min="0" value="8000" />
+    </div>
+
+    <div id="sc-fields">
+      <div class="viz-controls">
+        <div class="viz-field">
+          <label for="sc-base">现缴费基数</label>
+          <input id="sc-base" type="number" step="1" min="1" value="5521" />
+        </div>
+        <div class="viz-field">
+          <label for="sc-unit">单位现缴额</label>
+          <input id="sc-unit" type="number" step="1" min="0" value="883" />
+        </div>
+        <div class="viz-field">
+          <label for="sc-emp">个人现缴额</label>
+          <input id="sc-emp" type="number" step="1" min="0" value="442" />
+        </div>
+        <div class="viz-field">
+          <label for="sc-lower">基数下限</label>
+          <input id="sc-lower" type="number" step="1" min="0" value="5521" />
+        </div>
+        <div class="viz-field">
+          <label for="sc-upper">基数上限</label>
+          <input id="sc-upper" type="number" step="1" min="1" value="27603" />
+        </div>
+      </div>
+      <div class="check">
+        <input id="sc-include-emp" type="checkbox" checked />
+        <label for="sc-include-emp" style="margin:0">把个人侧计入合计</label>
+      </div>
+    </div>
+  </div>
+
+  <p class="alert hidden" id="sc-alert" role="alert"></p>
+
+  <div id="sc-single" role="tabpanel" aria-labelledby="tab-pension" class="stack">
+    <div class="module">
+      <div class="module-title"><span>测算结果</span><span class="sub" id="sc-res-sub">含个人侧</span></div>
+      <div class="grid-2">
+        <div class="stat">
+          <div class="text-small" id="sc-stat-label">每月要补（元）</div>
+          <div class="stat-value" id="sc-total-num" aria-live="polite">—</div>
+          <div class="note" id="sc-stat-sub">—</div>
+        </div>
+        <div class="panel">
+          <table>
+            <thead>
+              <tr><th>项目</th><th>现缴</th><th>应缴</th><th>差额</th></tr>
+            </thead>
+            <tbody aria-live="polite">
+              <tr><td>单位侧</td><td id="sc-u-paid">—</td><td id="sc-u-due">—</td><td id="sc-u-gap">—</td></tr>
+              <tr><td>个人侧</td><td id="sc-e-paid">—</td><td id="sc-e-due">—</td><td id="sc-e-gap">—</td></tr>
+              <tr><td>缴费基数</td><td id="sc-b-now">—</td><td id="sc-b-then">—</td><td id="sc-b-diff">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="formula" id="sc-formula" aria-live="polite"></div>
+      <p class="note" id="sc-band" aria-live="polite" style="margin:10px 0 0"></p>
+    </div>
+
+    <div class="module">
+      <div class="module-title">
+        <span id="sc-chart-title">变化曲线</span>
+        <span class="sub">横轴：工资 · 纵轴：每月补缴（元）</span>
+      </div>
+      <div id="sc-chart"></div>
+      <div class="viz-legend legend-row" id="sc-legend"></div>
+    </div>
+  </div>
+
+  <div id="sc-total" role="tabpanel" aria-labelledby="tab-total" class="stack hidden">
+    <div class="module">
+      <div class="module-title"><span>测算结果</span><span class="sub">养老 + 医疗 + 失业</span></div>
+      <div class="grid-2">
+        <div class="stat">
+          <div class="text-small">三项合计每月要补（元）</div>
+          <div class="stat-value" id="sc-sum-num" aria-live="polite">—</div>
+          <div class="note" id="sc-sum-sub">—</div>
+        </div>
+        <div class="panel table-responsive">
+          <table>
+            <thead>
+              <tr><th>险种</th><th>现基数 → 应缴基数</th><th>单位差额</th><th>个人差额</th><th>小计</th></tr>
+            </thead>
+            <tbody aria-live="polite" id="sc-sum-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <p class="note" id="sc-sum-note" aria-live="polite" style="margin:12px 0 0"></p>
+    </div>
+
+    <div class="module">
+      <div class="module-title">
+        <span>变化曲线</span>
+        <span class="sub">横轴：工资 · 纵轴：每月补缴（元）</span>
+      </div>
+      <div id="sc-chart-sum"></div>
+      <div class="viz-legend legend-row" id="sc-legend-sum"></div>
+    </div>
+  </div>
+
+  <p class="foot">作者：abububu903 ｜ 结果仅供参考，以社保经办机构核定为准</p>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var root = document.getElementById('shebao-calc');
+    var q = function (id) { return root.querySelector('#' + id); };
+    var el = {
+      wage: q('sc-wage'), alert: q('sc-alert'), fields: q('sc-fields'),
+      single: q('sc-single'), totalPanel: q('sc-total'),
+      base: q('sc-base'), unit: q('sc-unit'), emp: q('sc-emp'),
+      lower: q('sc-lower'), upper: q('sc-upper'), includeEmp: q('sc-include-emp'),
+      statLabel: q('sc-stat-label'), totalNum: q('sc-total-num'), statSub: q('sc-stat-sub'),
+      resSub: q('sc-res-sub'),
+      uPaid: q('sc-u-paid'), uDue: q('sc-u-due'), uGap: q('sc-u-gap'),
+      ePaid: q('sc-e-paid'), eDue: q('sc-e-due'), eGap: q('sc-e-gap'),
+      bNow: q('sc-b-now'), bThen: q('sc-b-then'), bDiff: q('sc-b-diff'),
+      formula: q('sc-formula'), chart: q('sc-chart'), legend: q('sc-legend'),
+      band: q('sc-band'), chartTitle: q('sc-chart-title'),
+      sumNum: q('sc-sum-num'), sumSub: q('sc-sum-sub'), sumBody: q('sc-sum-body'),
+      chartSum: q('sc-chart-sum'), legendSum: q('sc-legend-sum'), sumNote: q('sc-sum-note'),
+      meta: {
+        pension: q('meta-pension'), medical: q('meta-medical'), unemployment: q('meta-unemployment')
+      }
+    };
+    var tabs = Array.prototype.slice.call(root.querySelectorAll('.tab'));
+
+    var data = {
+      pension: { name: '养老', base: 5521, unit: 883, emp: 442, lower: 5521, upper: 27603 },
+      medical: { name: '医疗', base: 6727, unit: 659, emp: 135, lower: 6727, upper: 33633 },
+      unemployment: { name: '失业', base: 2700, unit: 14, emp: 14, lower: 2700, upper: 48471 }
+    };
+    var keys = ['pension', 'medical', 'unemployment'];
+    var active = 'pension';
+
+    function num(v) {
+      var n = parseFloat(v);
+      return isFinite(n) ? n : NaN;
+    }
+    function yuan(v) {
+      return v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function money(v) {
+      return isFinite(v) ? v.toLocaleString('zh-CN', { maximumFractionDigits: 0 }) : '—';
+    }
+    function signed(v) {
+      return (v >= 0 ? '+' : '−') + yuan(Math.abs(v));
+    }
+    function pct(v) {
+      return (v * 100).toFixed(3) + '%';
+    }
+    function clamp(v, lo, hi) {
+      return Math.min(Math.max(v, lo), hi);
+    }
+
+    function readTabInputs() {
+      if (active === 'total') return;
+      var d = data[active];
+      d.base = num(el.base.value);
+      d.unit = num(el.unit.value);
+      d.emp = num(el.emp.value);
+      d.lower = num(el.lower.value);
+      d.upper = num(el.upper.value);
+    }
+
+    function calcOne(d, wage) {
+      var unitRate = d.unit / d.base;
+      var empRate = d.emp / d.base;
+      var eff = clamp(wage, d.lower, d.upper);
+      var uGap = unitRate * eff - d.unit;
+      var eGap = empRate * (eff - d.base);
+      return {
+        unitRate: unitRate, empRate: empRate, eff: eff,
+        uDue: unitRate * eff, eDue: empRate * eff,
+        uGap: uGap, eGap: eGap, gap: uGap + eGap,
+        capped: wage > d.upper, floored: wage < d.lower
+      };
+    }
+
+    function validate() {
+      var w = num(el.wage.value);
+      if (!isFinite(w) || w < 0) return '实际工资要填一个不小于 0 的数字。';
+      var bad = [];
+      keys.forEach(function (k) {
+        var d = data[k];
+        if ([d.base, d.unit, d.emp, d.lower, d.upper, w].some(function (v) { return !isFinite(v); })) bad.push(d.name + '：有空格不是数字');
+        else if (d.base <= 0) bad.push(d.name + '：现缴费基数要大于 0');
+        else if (d.lower > d.upper) bad.push(d.name + '：基数下限不能大于上限');
+      });
+      return bad.join('；');
+    }
+
+    function drawChart(cfg) {
+      var W = 640, H = 230, m = { l: 58, r: 14, t: 12, b: 30 };
+      var x0 = cfg.x0, x1 = cfg.x1;
+      if (!(x1 > x0)) x1 = x0 + 1000;
+      var N = 180, i, wx, a = [], b = [], maxY = -Infinity, minY = Infinity;
+      for (i = 0; i <= N; i++) {
+        wx = x0 + ((x1 - x0) * i) / N;
+        var v1 = cfg.f1(wx), v2 = cfg.f2(wx);
+        a.push([wx, v1]); b.push([wx, v2]);
+        [v1, v2].forEach(function (v) { if (v > maxY) maxY = v; if (v < minY) minY = v; });
+      }
+      if (maxY <= minY) maxY = minY + 100;
+      var padY = (maxY - minY) * 0.08;
+      maxY += padY; minY -= padY;
+      function px(v) { return m.l + ((v - x0) / (x1 - x0)) * (W - m.l - m.r); }
+      function py(v) { return m.t + ((maxY - v) / (maxY - minY)) * (H - m.t - m.b); }
+      function path(pts) {
+        return pts.map(function (p, n) { return (n ? 'L' : 'M') + px(p[0]).toFixed(1) + ' ' + py(p[1]).toFixed(1); }).join(' ');
+      }
+
+      var svg = ['<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + cfg.aria + '">'];
+      for (i = 0; i <= 4; i++) {
+        var gv = minY + ((maxY - minY) * i) / 4;
+        svg.push('<line x1="' + m.l + '" y1="' + py(gv).toFixed(1) + '" x2="' + (W - m.r) + '" y2="' + py(gv).toFixed(1) + '" stroke="var(--border-subtle)"/>');
+        svg.push('<text x="' + (m.l - 8) + '" y="' + (py(gv) + 4).toFixed(1) + '" text-anchor="end" font-size="11" fill="var(--seed-fg)">' + Math.round(gv) + '</text>');
+      }
+      if (minY < 0 && maxY > 0) {
+        svg.push('<line x1="' + m.l + '" y1="' + py(0).toFixed(1) + '" x2="' + (W - m.r) + '" y2="' + py(0).toFixed(1) + '" stroke="var(--border-standard)"/>');
+      }
+      cfg.marks.forEach(function (mk, idx) {
+        if (!(mk.v > x0 && mk.v < x1)) return;
+        var lx = px(mk.v);
+        svg.push('<line x1="' + lx.toFixed(1) + '" y1="' + m.t + '" x2="' + lx.toFixed(1) + '" y2="' + (H - m.b) + '" stroke="var(--border-standard)" stroke-dasharray="3 3"/>');
+        var anchor = lx > W - m.r - 80 ? 'end' : 'start';
+        svg.push('<text x="' + (lx + (anchor === 'end' ? -4 : 4)).toFixed(1) + '" y="' + (H - m.b - 16 - idx * 14) + '" text-anchor="' + anchor + '" font-size="11" fill="var(--seed-muted)">' + mk.label + ' ' + mk.v + '</text>');
+      });
+      svg.push('<path d="' + path(b) + '" fill="none" stroke="var(--viz-series-2)" stroke-width="1.6" stroke-dasharray="5 4"/>');
+      svg.push('<path d="' + path(a) + '" fill="none" stroke="var(--viz-series-1)" stroke-width="2"/>');
+      var w = cfg.wage;
+      if (w >= x0 && w <= x1) {
+        var mx = px(w);
+        svg.push('<line x1="' + mx.toFixed(1) + '" y1="' + m.t + '" x2="' + mx.toFixed(1) + '" y2="' + (H - m.b) + '" stroke="var(--seed-primary)"/>');
+        svg.push('<circle cx="' + mx.toFixed(1) + '" cy="' + py(cfg.f1(w)).toFixed(1) + '" r="4" fill="var(--viz-series-1)"/>');
+        svg.push('<circle cx="' + mx.toFixed(1) + '" cy="' + py(cfg.f2(w)).toFixed(1) + '" r="4" fill="var(--viz-series-2)"/>');
+      }
+      [x0, (x0 + x1) / 2, x1].forEach(function (tx, i) {
+        var anchor = i === 0 ? 'start' : (i === 2 ? 'end' : 'middle');
+        var txp = i === 0 ? m.l : (i === 2 ? W - m.r : px(tx));
+        svg.push('<text x="' + txp.toFixed(1) + '" y="' + (H - 8) + '" text-anchor="' + anchor + '" font-size="11" fill="var(--seed-muted)">' + Math.round(tx) + '</text>');
+      });
+      svg.push('</svg>');
+      cfg.target.innerHTML = svg.join('');
+      cfg.legendTarget.innerHTML =
+        '<span class="viz-legend"><span class="viz-legend-swatch" style="background:var(--viz-series-1)"></span>' + cfg.s1 + '</span>' +
+        '<span class="viz-legend"><span class="viz-legend-swatch" style="background:var(--viz-series-2)"></span>' + cfg.s2 + '</span>';
+    }
+
+    function renderSingle() {
+      var d = data[active], w = num(el.wage.value);
+      var r = calcOne(d, w);
+      var includeEmp = el.includeEmp.checked;
+      var total = includeEmp ? r.gap : r.uGap;
+
+      el.resSub.textContent = includeEmp ? '含个人侧' : '仅单位侧';
+      el.statLabel.textContent = d.name + '：每月要补（元）';
+      el.totalNum.textContent = signed(total);
+      el.statSub.innerHTML =
+        '工资 ' + yuan(w) + ' 时' + (total >= 0 ? '每月需补' : '每月可比现在少缴') + yuan(Math.abs(total)) +
+        '<br>一年' + (total >= 0 ? '多补 ' : '少缴 ') + yuan(Math.abs(total) * 12);
+
+      el.uPaid.textContent = yuan(d.unit);
+      el.uDue.textContent = yuan(r.uDue);
+      el.uGap.textContent = signed(r.uGap);
+      el.ePaid.textContent = yuan(d.emp);
+      el.eDue.textContent = yuan(r.eDue);
+      el.eGap.textContent = signed(r.eGap);
+      el.bNow.textContent = yuan(d.base);
+      el.bThen.textContent = yuan(r.eff) + (r.capped ? ' 封顶' : r.floored ? ' 托底' : '');
+      el.bDiff.textContent = signed(r.eff - d.base);
+
+      el.formula.innerHTML =
+        d.name + '比例：单位 ' + yuan(d.unit) + ' ÷ ' + yuan(d.base) + ' = <strong>' + pct(r.unitRate) + '</strong>；个人 ' +
+        yuan(d.emp) + ' ÷ ' + yuan(d.base) + ' = <strong>' + pct(r.empRate) + '</strong>' +
+        '<br>应缴基数 = ' + yuan(w) + ' 截断到 [' + yuan(d.lower) + ', ' + yuan(d.upper) + '] = <strong>' + yuan(r.eff) + '</strong>' +
+        '<br>单位补缴 = ' + pct(r.unitRate) + ' × ' + yuan(r.eff) + ' − ' + yuan(d.unit) + ' = <strong>' + yuan(r.uGap) + '</strong>' +
+        '<br>个人补缴 = ' + pct(r.empRate) + ' × (' + yuan(r.eff) + ' − ' + yuan(d.base) + ') = ' + yuan(r.eGap);
+
+      el.band.textContent =
+        '取整误差：若 ' + yuan(d.unit) + ' / ' + yuan(d.emp) + ' 是四舍五入后的值，单位比例区间 ' +
+        pct((d.unit - 0.5) / d.base) + '–' + pct((d.unit + 0.5) / d.base) + '，个人比例区间 ' +
+        pct((d.emp - 0.5) / d.base) + '–' + pct((d.emp + 0.5) / d.base) + '。' +
+        (active === 'medical' ? '注意医疗常含固定金额项目（如大病医疗补助），摊进比例后测算会有小偏差。' : '');
+
+      el.chartTitle.textContent = d.name + '：每月补缴额随工资变化';
+      drawChart({
+        x0: d.lower, x1: Math.max(d.upper * 1.12, w * 1.05),
+        f1: function (x) { return calcOne(d, x).uGap; },
+        f2: function (x) { return includeEmp ? calcOne(d, x).gap : calcOne(d, x).uGap; },
+        marks: [{ v: d.base, label: '现基数' }, { v: d.upper, label: '封顶' }],
+        wage: w, target: el.chart, legendTarget: el.legend,
+        s1: '单位侧', s2: includeEmp ? '单位侧 + 个人侧' : '单位侧（合计同线）',
+        aria: d.name + '每月补缴额随工资变化折线图'
+      });
+    }
+
+    function renderTotal() {
+      var w = num(el.wage.value);
+      var includeEmp = el.includeEmp.checked;
+      var rows = [], sumU = 0, sumE = 0;
+      keys.forEach(function (k) {
+        var d = data[k];
+        var r = calcOne(d, w);
+        sumU += r.uGap; sumE += r.eGap;
+        rows.push(
+          '<tr><td>' + d.name + '</td><td>' + yuan(d.base) + ' → ' + yuan(r.eff) + (r.capped ? ' 封顶' : r.floored ? ' 托底' : '') +
+          '</td><td>' + signed(r.uGap) + '</td><td>' + signed(r.eGap) + '</td><td>' + signed(r.uGap + r.eGap) + '</td></tr>'
+        );
+      });
+      var sum = sumU + (includeEmp ? sumE : 0);
+      el.sumBody.innerHTML = rows.join('') +
+        '<tr><td>合计</td><td>—</td><td>' + signed(sumU) + '</td><td>' + signed(sumE) + '</td><td>' + signed(sumU + sumE) + '</td></tr>';
+      el.sumNum.textContent = signed(sum);
+      el.sumSub.innerHTML =
+        '工资 ' + yuan(w) + ' 时' + (sum >= 0 ? '每月需补' : '每月可比现在少缴') + yuan(Math.abs(sum)) +
+        '<br>一年' + (sum >= 0 ? '多补 ' : '少缴 ') + yuan(Math.abs(sum) * 12);
+
+      var lo = Math.min.apply(null, keys.map(function (k) { return data[k].lower; }));
+      var hi = Math.max.apply(null, keys.map(function (k) { return data[k].upper; }));
+      drawChart({
+        x0: lo, x1: Math.max(hi * 1.08, w * 1.05),
+        f1: function (x) { return keys.reduce(function (s, k) { return s + calcOne(data[k], x).uGap; }, 0); },
+        f2: function (x) { return includeEmp ? keys.reduce(function (s, k) { return s + calcOne(data[k], x).gap; }, 0) : keys.reduce(function (s, k) { return s + calcOne(data[k], x).uGap; }, 0); },
+        marks: keys.map(function (k) { return { v: data[k].upper, label: data[k].name + '封顶' }; }),
+        wage: w, target: el.chartSum, legendTarget: el.legendSum,
+        s1: '单位侧', s2: includeEmp ? '单位侧 + 个人侧' : '单位侧（合计同线）',
+        aria: '三项合计每月补缴额随工资变化折线图'
+      });
+
+      var unitNow = keys.reduce(function (s, k) { return s + data[k].unit; }, 0);
+      var empNow = keys.reduce(function (s, k) { return s + data[k].emp; }, 0);
+      el.sumNote.textContent =
+        '三项现缴合计：单位 ' + yuan(unitNow) + ' + 个人 ' + yuan(empNow) + ' = ' + yuan(unitNow + empNow) +
+        ' 元/月。若与你社保查询里的总额对不上，说明还有工伤、生育等未计入本表，或某险种基数与本表填法不同。' +
+        (includeEmp ? '' : '（当前合计只算单位侧，个人侧见表格「个人差额」列）');
+    }
+
+    function syncTabInputs() {
+      if (active === 'total') return;
+      var d = data[active];
+      el.base.value = d.base;
+      el.unit.value = d.unit;
+      el.emp.value = d.emp;
+      el.lower.value = d.lower;
+      el.upper.value = d.upper;
+    }
+
+    function syncTiles() {
+      keys.forEach(function (k) {
+        var d = data[k];
+        el.meta[k].textContent = '下限 ' + money(d.lower) + ' · 上限 ' + money(d.upper);
+      });
+    }
+
+    function update() {
+      readTabInputs();
+      syncTiles();
+      var msg = validate();
+      el.alert.textContent = msg;
+      el.alert.classList.toggle('hidden', !msg);
+      var isTotal = active === 'total';
+      tabs.forEach(function (t) {
+        t.setAttribute('aria-selected', String(t.id === 'tab-' + active));
+      });
+      el.fields.classList.toggle('hidden', isTotal);
+      el.single.classList.toggle('hidden', isTotal);
+      el.totalPanel.classList.toggle('hidden', !isTotal);
+      if (msg) {
+        el.totalNum.textContent = '—';
+        el.statSub.textContent = '—';
+        el.formula.textContent = '—';
+        el.band.textContent = '';
+        el.chart.innerHTML = '';
+        el.legend.innerHTML = '';
+        el.sumNum.textContent = '—';
+        el.sumSub.textContent = '—';
+        el.sumBody.innerHTML = '';
+        el.chartSum.innerHTML = '';
+        el.legendSum.innerHTML = '';
+        el.sumNote.textContent = '';
+        return;
+      }
+      if (isTotal) renderTotal(); else renderSingle();
+    }
+
+    tabs.forEach(function (t) {
+      t.addEventListener('click', function () {
+        active = t.id.replace('tab-', '');
+        syncTabInputs();
+        update();
+      });
+    });
+    [el.wage, el.base, el.unit, el.emp, el.lower, el.upper, el.includeEmp].forEach(function (node) {
+      node.addEventListener('input', update);
+      node.addEventListener('change', update);
+    });
+
+    syncTabInputs();
+    update();
+  })();
+</script>
+
+
+</body>
+</html>
